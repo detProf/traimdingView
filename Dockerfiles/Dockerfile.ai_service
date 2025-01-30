@@ -1,0 +1,12 @@
+FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+
+WORKDIR /app/ai
+
+# Copy only AI service files
+COPY ai /app/ai
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 5006
+
+CMD ["python", "live_train.py"]
