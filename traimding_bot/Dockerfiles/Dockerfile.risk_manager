@@ -1,0 +1,12 @@
+FROM python:3.10-slim
+
+WORKDIR /app/risk_manager
+
+# Copy only risk manager-related files
+COPY risk_manager /app/risk_manager
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 5002
+
+CMD ["python", "risk_manager.py"]

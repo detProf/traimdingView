@@ -1,0 +1,141 @@
+version: "3.9"
+
+services:
+  traimding_bot:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.traimding_bot
+    container_name: traimding_bot
+    restart: always
+    command: ["python", "main.py"]
+    environment:
+      - REDIS_HOST=redis
+      - MONGO_HOST=mongodb
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - redis
+      - mongodb
+      - rabbitmq
+      - data-feed
+      - broker
+      - risk-manager
+      - strategy-engine
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.ai_service
+    container_name: ai-service
+    restart: always
+    environment:
+      - REDIS_HOST=redis
+      - MONGO_HOST=mongodb
+    ports:
+      - "5006:5006"
+    depends_on:
+      - redis
+      - mongodb
+
+  data-feed:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.data_feed
+    container_name: data-feed
+    restart: always
+    command: ["python", "data_feed.py"]
+    environment:
+      - REDIS_HOST=redis
+      - MONGO_HOST=mongodb
+    ports:
+      - "5001:5001"
+    depends_on:
+      - redis
+      - mongodb
+
+  broker:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.broker
+    container_name: broker
+    restart: always
+    command: ["python", "broker/real_broker.py"]
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    ports:
+      - "5004:5004"
+
+  risk-manager:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.risk_manager
+    container_name: risk-manager
+    restart: always
+    command: ["python", "risk_manager/risk_manager.py"]
+    ports:
+      - "5002:5002"
+
+  strategy-engine:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.strategy_engine
+    container_name: strategy-engine
+    restart: always
+    command: ["python", "ai_strategy.py"]
+    depends_on:
+      - data-feed
+      - redis
+      - mongodb
+    environment:
+      - MONGO_HOST=mongodb
+    ports:
+      - "5003:5003"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - web-dashboard
+
+  web-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.web_dashboard
+    container_name: web-dashboard
+    restart: always
+    command: ["python", "web_dashboard.py"]
+    ports:
+      - "5007:5007"
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  mongodb:
+    image: mongo:5.0
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
