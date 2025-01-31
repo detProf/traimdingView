@@ -1,0 +1,13 @@
+# config/config.yaml
+
+broker: "paper"
+symbols: ["AAPL", "TSLA"]
+strategy: "ml_strategy"
+ml_model: "random_forest"
+risk:
+  max_position_size: 100
+  stop_loss_percent: 0.02
+schedule:
+  interval: "5m"
+logging:
+  level: "INFO"

@@ -1,6 +1,0 @@
-flask==2.2.5
-gunicorn==20.1.0
-websockets==10.4
-pymongo==4.5.0
-redis==4.5.1
-celery==5.3.4  # Background tasks processing
